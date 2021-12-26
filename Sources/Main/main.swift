@@ -1,4 +1,4 @@
-import Day16
+import Day1
 import Extensions
 
 partOne()
