@@ -134,7 +134,7 @@ func part2(astroids: [Point], station: Point) {
   if let finalRegion = finalRegion, let slopes = regionToSlopes[finalRegion] {
     let sortedSlopes = slopes.sorted(by: \.quadrantAngle)
     let finalSlope = sortedSlopes[remaining - 1]
-    print(slopeToNearestAstroid[finalSlope]) //Point(x: 14, y: 17)
+    print(slopeToNearestAstroid[finalSlope]!) //Point(x: 14, y: 17)
   }
 }
 

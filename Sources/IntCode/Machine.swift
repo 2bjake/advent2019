@@ -28,6 +28,10 @@ public struct Machine {
         self.program.append(contentsOf: Array(repeating: 0, count: 1000))
     }
 
+  public mutating func run(input: Int) -> Result {
+    run(initialInputs: [input])
+  }
+
     public mutating func run(initialInputs: [Int] = []) -> Result {
         guard !program.isEmpty else { fatalError() }
         var initialInputs = initialInputs
