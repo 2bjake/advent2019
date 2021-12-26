@@ -1,3 +1,5 @@
+import Algorithms
+
 extension Collection {
   // requires collection to be sorted before calling
   private func firstIfUnique<Subject: Hashable>(on projection: (Element) throws -> Subject) rethrows -> Element? {
@@ -51,4 +53,10 @@ extension Collection {
 
 extension Collection {
   public var notEmpty: Bool { !isEmpty }
+}
+
+extension Collection where Element: Comparable {
+  public func isSorted() -> Bool {
+    self.adjacentPairs().allSatisfy { first, second in first <= second }
+  }
 }
