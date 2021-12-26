@@ -21,7 +21,7 @@ public struct Machine {
     var program: [Int]
     var instructionPtr = 0
     var relativeBase = 0
-    var isHalted = false
+    public private(set) var isHalted = false
 
     public init(program: [Int]) {
         self.program = program
