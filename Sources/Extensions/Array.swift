@@ -31,3 +31,10 @@ extension Array where Element: RandomAccessCollection, Element.Index == Int {
     (0..<count).map { self[$0][idx] }
   }
 }
+
+extension Array {
+  public func element(at idx: Int) -> Element? {
+    guard indices.contains(idx) else { return nil }
+    return self[idx]
+  }
+}

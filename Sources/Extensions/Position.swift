@@ -68,7 +68,7 @@ extension Array where Element: RandomAccessCollection, Element.Index == Int {
     (0..<numberOfRows).contains(position.row) && (0..<numberOfColumns).contains(position.col)
   }
 
-  public func element(at position: Position) -> BaseElement? {
+  public func element(atPosition position: Position) -> BaseElement? {
     guard isValidPosition(position) else { return nil }
     return self[position]
   }
