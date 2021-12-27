@@ -18,15 +18,15 @@ public struct Machine {
     }
   }
 
-  var program: [Int]
-  var memory: [Int: Int] = [:]
-  var instructionPtr = 0
-  var relativeBase = 0
+  private var program: [Int]
+  private var memory: [Int: Int] = [:]
+  private var instructionPtr = 0
+  private var relativeBase = 0
+  public var outputWatcher: ((Int) -> Void)?
   public private(set) var isHalted = false
 
   public init(program: [Int]) {
     self.program = program
-    //self.program.append(contentsOf: Array(repeating: 0, count: 1000))
   }
 
   public mutating func run(input: Int) -> Result {
@@ -54,6 +54,7 @@ public struct Machine {
           result = initialInputs.removeFirst()
         case .output:
           outputs.append(inputs[0])
+          outputWatcher?(inputs[0])
         case .jumpIfTrue:
           jumpPointer = inputs[0] != 0 ? inputs[1] : nil
         case .jumpIfFalse:
