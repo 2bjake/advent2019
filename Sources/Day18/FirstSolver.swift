@@ -1,15 +1,15 @@
 import Extensions
 import Algorithms
 
-private struct Path: Hashable {
+private struct FirstPath: Hashable {
   var from: Position
   var to: Position
 
-  var reversed: Path { .init(from: to, to: from) }
+  var reversed: FirstPath { .init(from: to, to: from) }
 }
 
 
-private var distanceCache = [Path: Int]()
+private var distanceCache = [FirstPath: Int]()
 struct FirstSolver {
   private let entrance: LocatedItem
   private let grid: [[Item]]
@@ -60,7 +60,7 @@ struct FirstSolver {
   }
 
   func distanceWithCache(from start: Position, to end: Position, visited: Set<Position> = []) -> Int? {
-    let path = Path(from: start, to: end)
+    let path = FirstPath(from: start, to: end)
     if distanceCache[path] == nil {
       distanceCache[path] = distance(from: start, to: end, cost: 0, visited: visited)
     }

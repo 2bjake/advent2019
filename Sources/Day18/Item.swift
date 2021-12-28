@@ -104,11 +104,22 @@ extension LocatedItem {
     let colMid = numberOfColumns / 2
 
     switch (position.row, position.col) {
+      case (rowMid, colMid): quadrant = .center
       case (0..<rowMid, 0..<colMid): quadrant = .upperLeft
-      case (0..<rowMid, colMid..<numberOfColumns): quadrant = .lowerLeft
-      case (rowMid..<numberOfRows, 0..<colMid): quadrant = .upperRight
+      case (0..<rowMid, colMid..<numberOfColumns): quadrant = .upperRight
+      case (rowMid..<numberOfRows, 0..<colMid): quadrant = .lowerLeft
       case (rowMid..<numberOfRows, colMid..<numberOfColumns): quadrant = .lowerRight
-      default: quadrant = .center
+      default: fatalError()
     }
   }
+//
+//  struct Builder {
+//    let numberOfRows: Int
+//    let numberOfColumns: Int
+//    let itemsToPositions: [Item: Position]
+//
+//    func build(item: Item) -> LocatedItem {
+//      LocatedItem(item: item, position: itemsToPositions[item]!, numberOfRows: numberOfRows, numberOfColumns: numberOfColumns)
+//    }
+//  }
 }
