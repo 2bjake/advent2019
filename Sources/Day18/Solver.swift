@@ -1,132 +1,50 @@
 import Extensions
 
-private struct Path: Hashable {
-  var from: Position
-  var to: Position
-
-  var reversed: Path { .init(from: to, to: from) }
-}
-
-
-private var distanceCache = [Path: Int]()
 struct Solver {
-  private let keysToPositions: [Item: Position]
-  private let entrance: LocatedItem
-  private let grid: [[Item]]
-  private let itemToDependants: [Item: Set<Item>]
+  let vaultEntrance: LocatedItem
 
   init(_ grid: [[Item]]) {
-    self.grid = grid
+    let vaultEntrancePos = grid.allPositions.filter { grid[$0].isVaultEntrance }.first!
+    vaultEntrance = LocatedItem(item: .vaultEntrance, position: vaultEntrancePos, quadrant: .center)
 
-    var entrance: LocatedItem!
-    var keysToPositions: [Item: Position] = [:]
-    for pos in grid.allPositions {
-      let item = grid[pos]
-      switch item {
-        case .entrance: entrance = LocatedItem(item: .entrance, position: pos)
-        case .key: keysToPositions[item] = pos
-        default: break
-      }
-    }
-    self.entrance = entrance
-    self.keysToPositions = keysToPositions
-
-    var itemToDependency = Self.buildDependencyGraph(grid: grid, entrance: entrance)
-    // remove doors
-    itemToDependency = itemToDependency.mapValues {
-      guard let key = $0.matchingKey else { return $0 }
-      return key
-    }
-    itemToDependency = itemToDependency.filter { k, _ in !k.isDoor }
-    self.itemToDependants = Dictionary(grouping: itemToDependency, by: \.value).mapValues { Set($0.map(\.key)) }
+    let dependencies = Self.buildDependencyGraph(grid: grid, vaultEntrance: vaultEntrance)
+    Self.printDependencies(dependencies, dependency: vaultEntrance)
   }
+}
 
-  func distance(from start: Position, to end: Position, cost: Int = 0, visited: Set<Position> = []) -> Int? {
-    guard !grid[end].isWall else { fatalError() }
-    guard start != end else { return cost }
-    guard !grid[start].isWall else { return nil }
-
-    for pos in grid.adjacentPositions(of: start) where !pos.isIn(visited) {
-      if let result = distance(from: pos, to: end, cost: cost + 1, visited: visited.inserting(start)) {
-        return result
-      }
-    }
-    return nil
-  }
-
-  func distanceWithCache(from start: Position, to end: Position, cost: Int = 0, visited: Set<Position> = []) -> Int? {
-    let path = Path(from: start, to: end)
-    if distanceCache[path] == nil {
-      distanceCache[path] = distance(from: start, to: end, cost: cost, visited: visited)
-    }
-    return distanceCache[path]!
-  }
-
-
-//  func distance(from start: Position, to end: Position, cost: Int = 0, visited: Set<Position> = []) -> Int? {
-//    guard !grid[end].isWall else { fatalError() }
-//    guard start != end else { return cost }
-//    guard !grid[start].isWall else { return nil }
-//
-//    if distanceCache[[start, end]] == nil {
-//      let value: Int? = {
-//        for pos in grid.adjacentPositions(of: start) where !pos.isIn(visited) {
-//          if let result = distance(from: pos, to: end, cost: cost + 1, visited: visited.inserting(start)) {
-//            return result
-//          }
-//        }
-//        return nil
-//      }()
-//
-//      if value != nil {
-//        distanceCache[[start, end]] = value
-//        distanceCache[[end, start]] = value
-//      }
-//    }
-//    return distanceCache[[start, end]]
-//  }
-
-  private func shortestPath(from start: Position, frontier: Set<Item>, remainingKeys: Set<Item>) -> Int {
-    print("finding shortest from \(grid[start]) with frontier \(frontier) with \(remainingKeys.count) keys left")
-    guard frontier.notEmpty else {
-      return 0
-    }
-
-    var shortest = Int.max
-    for key in frontier {
-      let pos = keysToPositions[key]!
-      let newFrontier = frontier.subtracting(key).union(itemToDependants[key] ?? [])
-      let newRemainingKeys = remainingKeys.subtracting(key)
-      let newDistance = distanceWithCache(from: start, to: pos)! + shortestPath(from: pos, frontier: newFrontier, remainingKeys: newRemainingKeys)
-      shortest = min(shortest, newDistance)
-    }
-    return shortest
-  }
-
-  func shortestPath() -> Int {
-    let allKeys = Set(keysToPositions.keys)
-    return shortestPath(from: entrance.position, frontier: itemToDependants[.entrance]!, remainingKeys: allKeys)
-  }
-
-  private static func buildDependencyGraph(grid: [[Item]], entrance: LocatedItem) -> [Item: Item] {
-    var itemToDependency = [Item: Item]()
+extension Solver {
+  private static func buildDependencyGraph(grid: [[Item]], vaultEntrance: LocatedItem) -> [LocatedItem: Set<LocatedItem>] {
+    var itemToDependency = [LocatedItem: LocatedItem]()
     var visited = Set<Position>()
-    var frontier = [entrance]
+    var frontier = [vaultEntrance]
     var grid = grid
+
+    let keysToPositions: [Item: Position] = grid.allPositions
+      .filter { grid[$0].isKey }
+      .reduce(into: [:]) { result, pos in
+        result[grid[pos]] = pos
+      }
+
     while frontier.notEmpty {
       let door = frontier.removeLast()
       grid[door.position] = .passage
 
       let reachable = reachableItems(in: grid, from: door.position, visited: &visited)
       for item in reachable {
-        itemToDependency[item.item] = door.item
+        itemToDependency[item] = door
       }
       frontier.append(contentsOf: reachable.filter(\.item.isDoor))
       for key in reachable.filter(\.item.isKey) {
         grid[key.position] = .passage
       }
     }
-    return itemToDependency
+
+    itemToDependency = itemToDependency.mapValues {
+      guard let key = $0.item.matchingKey else { return $0 }
+      return LocatedItem(item: key, position: keysToPositions[key]!, numberOfRows: grid.numberOfRows, numberOfColumns: grid.numberOfColumns)
+    }
+    itemToDependency = itemToDependency.filter { k, _ in !k.item.isDoor }
+    return Dictionary(grouping: itemToDependency, by: \.value).mapValues { Set($0.map(\.key)) }
   }
 
   private static func reachableItems(in grid: [[Item]], from pos: Position, visited: inout Set<Position>) -> [LocatedItem] {
@@ -139,7 +57,7 @@ struct Solver {
 
       let currentItem = grid[currentPos]
       if currentItem.isKey || currentItem.isDoor {
-        items.append(LocatedItem(item: currentItem, position: currentPos))
+        items.append(LocatedItem(item: currentItem, position: currentPos, numberOfRows: grid.numberOfRows, numberOfColumns: grid.numberOfColumns))
       }
 
       if !currentItem.isBlocking {
@@ -148,5 +66,16 @@ struct Solver {
       }
     }
     return items
+  }
+
+  static func printDependencies(_ dependencies: [LocatedItem: Set<LocatedItem>], dependency: LocatedItem) {
+    let items = dependencies[dependency] ?? []
+    for item in items {
+      print("\(dependency.item) -> \(item.item);")
+    }
+
+    for item in items {
+      printDependencies(dependencies, dependency: item)
+    }
   }
 }

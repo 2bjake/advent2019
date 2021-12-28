@@ -2,7 +2,8 @@ import Extensions
 
 enum Item: Hashable {
   case wall
-  case entrance
+  case vaultEntrance
+  case quadrantEntrance
   case passage
   case key(Character)
   case door(Character)
@@ -12,7 +13,8 @@ extension Item: CustomStringConvertible {
   var description: String {
     switch self {
       case .wall: return "#"
-      case .entrance: return "@"
+      case .vaultEntrance: return "@"
+      case .quadrantEntrance: return "$"
       case .passage: return "."
       case .key(let char): return String(char)
       case .door(let char): return String(char)
@@ -21,13 +23,6 @@ extension Item: CustomStringConvertible {
 }
 
 extension Item {
-//  var letter: Character? {
-//    switch self {
-//      case .key(let char), .door(let char): return char
-//      default: return nil
-//    }
-//  }
-
   var matchingDoor: Item? {
     guard case .key(let keyChar) = self else { return nil }
     return .init(keyChar.uppercased())
@@ -58,8 +53,13 @@ extension Item {
     return false
   }
 
-  var isEntrance: Bool {
-    if case .entrance = self { return true }
+  var isQuadrantEntrance: Bool {
+    if case .quadrantEntrance = self { return true }
+    return false
+  }
+
+  var isVaultEntrance: Bool {
+    if case .vaultEntrance = self { return true }
     return false
   }
 
@@ -75,7 +75,8 @@ extension Item {
   init(_ source: Character) {
     switch source {
       case "#": self = .wall
-      case "@": self = .entrance
+      case "@": self = .vaultEntrance
+      case "$": self = .quadrantEntrance
       case ".": self = .passage
       case "a"..."z": self = .key(source)
       case "A"..."Z": self = .door(source)
@@ -84,7 +85,30 @@ extension Item {
   }
 }
 
+enum Quadrant {
+  case upperLeft, upperRight, lowerLeft, lowerRight, center
+}
+
 struct LocatedItem: Hashable {
   var item: Item
   var position: Position
+  var quadrant: Quadrant
+}
+
+extension LocatedItem {
+  init(item: Item, position: Position, numberOfRows: Int, numberOfColumns: Int) {
+    self.item = item
+    self.position = position
+
+    let rowMid = numberOfRows / 2
+    let colMid = numberOfColumns / 2
+
+    switch (position.row, position.col) {
+      case (0..<rowMid, 0..<colMid): quadrant = .upperLeft
+      case (0..<rowMid, colMid..<numberOfColumns): quadrant = .lowerLeft
+      case (rowMid..<numberOfRows, 0..<colMid): quadrant = .upperRight
+      case (rowMid..<numberOfRows, colMid..<numberOfColumns): quadrant = .lowerRight
+      default: quadrant = .center
+    }
+  }
 }
