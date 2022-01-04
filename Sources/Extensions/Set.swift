@@ -12,4 +12,8 @@ extension Hashable {
   public func isIn(_ set: Set<Self>) -> Bool {
     set.contains(self)
   }
+
+  public func notIn(_ set: Set<Self>) -> Bool {
+    !isIn(set)
+  }
 }
