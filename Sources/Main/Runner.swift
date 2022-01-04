@@ -1,17 +1,17 @@
-import Day23
+import Day24
 import Extensions
 
 @main
 struct Runner {
-//  static func main() {
-//    partOne()
-//    partTwo()
-//  }
-
-  static func main() async {
-    await partOne()
-    await partTwo()
+  static func main() {
+    partOne()
+    partTwo()
   }
+
+//  static func main() async {
+//    await partOne()
+//    await partTwo()
+//  }
 }
 
 

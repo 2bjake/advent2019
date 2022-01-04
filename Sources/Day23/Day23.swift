@@ -1,3 +1,5 @@
+import Foundation
+
 func runWith(computers: [Computer], receiver: Receiver) async {
   var receiverById: [Int: Receiver] = computers.reduce(into: [:]) { result, computer in
     result[computer.id] = computer

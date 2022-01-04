@@ -22,6 +22,7 @@ actor Computer: Receiver {
   }
 
   func run() async {
+    machine.outputWatcher = send
     while !Task.isCancelled {
       let input: Int
       if receiveQueue.notEmpty {
@@ -38,7 +39,6 @@ actor Computer: Receiver {
 
   func prepare(withReceivers receivers: [Int: Receiver]) {
     self.receiversById = receivers
-    machine.outputWatcher = send
   }
 
   private func send(_ value: Int) {
