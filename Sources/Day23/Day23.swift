@@ -22,11 +22,14 @@ func runWith(computers: [Computer], receiver: Receiver) {
 
 @available(macOS 12.0.0, *)
 public func partOne() {
-  let computers = (0...49).map { Computer(id: $0, program: input) }
-  runWith(computers: computers, receiver: PrintReceiver())
+//  let computers = (0...49).map { Computer(id: $0, program: input) }
+//  runWith(computers: computers, receiver: PrintReceiver()) // 19530
 }
 
 @available(macOS 12.0.0, *)
 public func partTwo() {
-
+  let computers = (0...49).map { Computer(id: $0, program: input) }
+  let nat = NATReceiver(computers: computers)
+  Task { await nat.run() }
+  runWith(computers: computers, receiver: nat) // 12725
 }

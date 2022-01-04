@@ -14,6 +14,8 @@ actor Computer: Receiver {
   private var halted = false
   private var receiversById = [Int: Receiver]()
 
+  private(set) var isIdle: Bool = false
+
   init(id: Int, program: [Int]) {
     self.id = id
     self.machine = Machine(program: program)
@@ -23,9 +25,13 @@ actor Computer: Receiver {
   private func run() {
     Task {
       while !halted {
-        var input = -1
+        let input: Int
         if receiveQueue.notEmpty {
           input = receiveQueue.removeFirst()
+          isIdle = false
+        } else {
+          input = -1
+          isIdle = true
         }
         let result = machine.run(input: input)
         switch result {

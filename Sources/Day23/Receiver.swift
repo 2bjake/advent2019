@@ -10,9 +10,11 @@ class PrintReceiver: Receiver {
 }
 
 @available(macOS 12.0.0, *)
-class NATReceiver: Receiver {
-  var lastPacket: Packet!
-  var computers: [Computer]
+actor NATReceiver: Receiver {
+  private var lastPacket: Packet?
+  private var computers: [Computer]
+
+  private var sentYs = Set<Int>()
 
   init(computers: [Computer]) {
     self.computers = computers
@@ -21,9 +23,25 @@ class NATReceiver: Receiver {
   func run() {
     Task {
       while true {
-        //TODO
+        var isIdle = true
+        for computer in computers {
+          if await !computer.isIdle {
+            isIdle = false
+            break
+          }
+        }
 
-        await Task.sleep(200000000)
+        if let lastPacket = lastPacket, isIdle {
+          print("Sending y=\(lastPacket.y) to address 0")
+          if sentYs.contains(lastPacket.y) {
+            print("Sending \(lastPacket.y) a second time")
+          } else {
+            sentYs.insert(lastPacket.y)
+          }
+          await computers[0].receive(lastPacket)
+        }
+        
+        await Task.sleep(500000000)
       }
     }
   }
