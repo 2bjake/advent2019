@@ -1,47 +1,54 @@
-@available(macOS 12.0.0, *)
 protocol Receiver {
+  func run() async
   func receive(_ packet: Packet) async
 }
 
 class PrintReceiver: Receiver {
+  var hasReceived = false
+
+  func run() async {
+    while !hasReceived {
+      await Task.sleep(1)
+    }
+  }
+
   func receive(_ packet: Packet) {
     print("Received x=\(packet.x) y=\(packet.y)")
+    hasReceived = true
   }
 }
 
-@available(macOS 12.0.0, *)
 actor NATReceiver: Receiver {
   private var lastPacket: Packet?
   private var computers: [Computer]
 
   private var sentYs = Set<Int>()
+  private var hasSentTwice = false
 
   init(computers: [Computer]) {
     self.computers = computers
   }
 
-  func run() {
-    Task {
-      while true {
-        var isIdle = true
-        for computer in computers {
-          if await !computer.isIdle {
-            isIdle = false
-            break
-          }
-        }
+  func run() async {
+    while !hasSentTwice {
+      await Task.sleep(1)
 
-        if let lastPacket = lastPacket, isIdle {
-          print("Sending y=\(lastPacket.y) to address 0")
-          if sentYs.contains(lastPacket.y) {
-            print("Sending \(lastPacket.y) a second time")
-          } else {
-            sentYs.insert(lastPacket.y)
-          }
-          await computers[0].receive(lastPacket)
+      var isIdle = true
+      for computer in computers {
+        if await !computer.isIdle {
+          isIdle = false
+          break
         }
-        
-        await Task.sleep(500000000)
+      }
+
+      if let lastPacket = lastPacket, isIdle {
+        if sentYs.contains(lastPacket.y) {
+          print("Sending \(lastPacket.y) a second time")
+          hasSentTwice = true
+        } else {
+          sentYs.insert(lastPacket.y)
+        }
+        await computers[0].receive(lastPacket)
       }
     }
   }

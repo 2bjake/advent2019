@@ -25,6 +25,7 @@ let dayTargets: [Target] = (1...25).map {
 
 let package = Package(
   name: "AdventOfCode",
+  platforms: [.macOS(.v12)],
   products: [
     .executable(name: "Main", targets: ["Main"]),
   ],
