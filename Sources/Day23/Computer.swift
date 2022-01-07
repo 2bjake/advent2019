@@ -51,7 +51,7 @@ actor Computer: Receiver {
     sendQueue = []
   }
 
-  func receive(_ packet: Packet) async {
+  func receive(_ packet: Packet) {
     receiveQueue.append(contentsOf: [packet.x, packet.y])
   }
 }

@@ -1,9 +1,9 @@
-protocol Receiver {
+protocol Receiver: Actor {
   func run() async
-  func receive(_ packet: Packet) async
+  func receive(_ packet: Packet)
 }
 
-class PrintReceiver: Receiver {
+actor PrintReceiver: Receiver {
   var hasReceived = false
 
   func run() async {
@@ -15,6 +15,18 @@ class PrintReceiver: Receiver {
   func receive(_ packet: Packet) {
     print("Received x=\(packet.x) y=\(packet.y)")
     hasReceived = true
+  }
+}
+
+// is this a good idea?
+extension Sequence {
+  func allSatisfy(_ predicate: @escaping (Element) async throws -> Bool) async rethrows -> Bool {
+    try await withThrowingTaskGroup(of: Bool.self) { group in
+      for element in self {
+        group.addTask { try await predicate(element) }
+      }
+      return try await group.allSatisfy { $0 }
+    }
   }
 }
 
@@ -32,16 +44,24 @@ actor NATReceiver: Receiver {
   func run() async {
     while !hasSentTwice {
       await Task.sleep(1)
+//      var allIdle = true
+//      for computer in computers {
+//        if await !computer.isIdle {
+//          allIdle = false
+//          break
+//        }
+//      }
 
-      var isIdle = true
-      for computer in computers {
-        if await !computer.isIdle {
-          isIdle = false
-          break
+      let allIdle: Bool = await withTaskGroup(of: Bool.self) { group in
+        for computer in computers {
+          group.addTask { await computer.isIdle }
         }
+
+        return await group.allSatisfy { $0 }
       }
 
-      if let lastPacket = lastPacket, isIdle {
+      await Task.sleep(1)
+      if let lastPacket = lastPacket, allIdle {
         if sentYs.contains(lastPacket.y) {
           print("Sending \(lastPacket.y) a second time")
           hasSentTwice = true
@@ -53,7 +73,7 @@ actor NATReceiver: Receiver {
     }
   }
 
-  func receive(_ packet: Packet) async {
+  func receive(_ packet: Packet) {
     lastPacket = packet
   }
 }

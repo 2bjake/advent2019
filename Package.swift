@@ -12,6 +12,9 @@ let dayDependencies: [Int: [Target.Dependency]] = [
   15: ["IntCode"],
   17: ["IntCode"],
   19: ["IntCode"],
+  21: ["IntCode"],
+  23: ["IntCode"],
+  25: ["IntCode"]
 ]
 
 let dayTargets: [Target] = (1...25).map {
