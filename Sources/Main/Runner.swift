@@ -1,4 +1,4 @@
-import Day20
+import Day24
 import Extensions
 
 @main

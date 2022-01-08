@@ -100,16 +100,3 @@ deal into new stack
 deal with increment 70
 cut -9110
 """.split(separator: "\n")
-
-let sampleInput = """
-deal into new stack
-cut -2
-deal with increment 7
-cut 8
-cut -4
-deal with increment 7
-cut 3
-deal with increment 9
-deal with increment 3
-cut -1
-""".split(separator: "\n")
