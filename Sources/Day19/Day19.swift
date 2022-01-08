@@ -1,18 +1,18 @@
 import IntCode
 
 public func partOne() {
-//  let program = input.split(separator: ",").compactMap(Int.init)
-//
-//
-//  var sum = 0
-//  for x in 0..<50 {
-//    for y in 0..<50 {
-//      var machine = Machine(program: program)
-//      let result = machine.run(initialInputs: [x, y])
-//      sum += result.output.first!
-//    }
-//  }
-//  print(sum)
+  let program = input.split(separator: ",").compactMap(Int.init)
+
+
+  var sum = 0
+  for x in 0..<50 {
+    for y in 0..<50 {
+      var machine = Machine(program: program)
+      let result = machine.run(initialInputs: [x, y])
+      sum += result.output.first!
+    }
+  }
+  print(sum)
 }
 
 func showLine(y: Int) -> (first: Int, last: Int) {
