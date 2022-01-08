@@ -4,7 +4,7 @@ import Extensions
 @main
 struct Runner {
   static func main() {
-    //partOne()
+    partOne()
     partTwo()
   }
 
