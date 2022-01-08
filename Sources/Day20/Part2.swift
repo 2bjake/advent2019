@@ -66,7 +66,7 @@ extension Space {
 }
 
 func makeGrid() -> [[Space]] {
-  let charGrid = partTwoInput.map(Array.init)
+  let charGrid = input.map(Array.init)
   var spaceGrid = charGrid.map{ $0.map { _ in Space(kind: .passage) } }
 
   for pos in charGrid.allPositions {
@@ -111,26 +111,23 @@ func bestOf(_ a: PathResult, b: PathResult) -> PathResult {
   }
 }
 
-func findPath(fromPortal start: Location, to end: Location, visited: Set<Location>, maxDepth: Int, count: Int) -> PathResult {
-  var newVisted = visited.inserting(start)
-
+func findPath(fromPortal start: Location, to end: Location, visited: Set<Location>, maxDepth: Int, maxCount: Int, count: Int) -> PathResult {
   let otherPosition = matchingPortalPositions[start.position]!
   let otherDepth = grid[start.position].isUpPortal ? start.depth - 1 : start.depth + 1
   let otherLocation = Location(position: otherPosition, depth: otherDepth)
-  newVisted.insert(otherLocation)
 
   let portalExit = passableNeighbors(of: otherLocation, maxDepth: maxDepth).only!
-  return findPath(from: portalExit, to: end, visited: newVisted, maxDepth: maxDepth, count: count)
+  return findPath(from: portalExit, to: end, visited: [otherLocation], maxDepth: maxDepth, maxCount: maxCount, count: count)
 }
 
-private func findPath(from start: Location, to end: Location, visited: Set<Location>, maxDepth: Int, count: Int) -> PathResult {
-  print("visiting \(start.position) at depth \(start.depth)")
+private func findPath(from start: Location, to end: Location, visited: Set<Location>, maxDepth: Int, maxCount: Int, count: Int) -> PathResult {
+  guard count < maxCount else { return .failure }
   guard start != end else {
     return .success(count)
   }
 
   guard !grid[start.position].isPortal else {
-    return findPath(fromPortal: start, to: end, visited: visited, maxDepth: maxDepth, count: count)
+    return findPath(fromPortal: start, to: end, visited: visited, maxDepth: maxDepth, maxCount: maxCount, count: count)
   }
 
   let newVisted = visited.inserting(start)
@@ -138,7 +135,7 @@ private func findPath(from start: Location, to end: Location, visited: Set<Locat
 
   var bestResult = PathResult.failure
   for neighborLoc in neighborLocations {
-    let newResult = findPath(from: neighborLoc, to: end, visited: newVisted, maxDepth: maxDepth, count: count + 1)
+    let newResult = findPath(from: neighborLoc, to: end, visited: newVisted, maxDepth: maxDepth, maxCount: maxCount, count: count + 1)
     bestResult = bestOf(bestResult, b: newResult)
   }
   return bestResult
@@ -151,6 +148,10 @@ struct Location: Hashable {
 
 public func partTwo() {
   let exits = grid.allPositions.filter { grid[$0].kind == .exit }.map { Location(position: $0, depth: 0) }
-  let result = findPath(from: exits[0], to: exits[1], visited: [], maxDepth: 10, count: 0)
-  print(result)
+  let result = findPath(from: exits[0], to: exits[1], visited: [], maxDepth: 25, maxCount: 6000, count: 0)
+  if case .success(let value) = result {
+    print("path found: \(value - 2) steps") // 5350
+  } else {
+    print("no path found")
+  }
 }
