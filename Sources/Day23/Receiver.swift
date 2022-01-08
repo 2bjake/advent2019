@@ -8,7 +8,7 @@ actor PrintReceiver: Receiver {
 
   func run() async {
     while !hasReceived {
-      await Task.sleep(1)
+      try? await Task.sleep(nanoseconds: 1)
     }
   }
 
@@ -43,7 +43,7 @@ actor NATReceiver: Receiver {
 
   func run() async {
     while !hasSentTwice {
-      await Task.sleep(1)
+      try? await Task.sleep(nanoseconds: 1)
 //      var allIdle = true
 //      for computer in computers {
 //        if await !computer.isIdle {
@@ -60,7 +60,7 @@ actor NATReceiver: Receiver {
         return await group.allSatisfy { $0 }
       }
 
-      await Task.sleep(1)
+      try? await Task.sleep(nanoseconds: 1)
       if let lastPacket = lastPacket, allIdle {
         if sentYs.contains(lastPacket.y) {
           print("Sending \(lastPacket.y) a second time")

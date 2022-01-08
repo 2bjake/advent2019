@@ -33,7 +33,7 @@ actor Computer: Receiver {
         idleCount += 1
       }
       _ = machine.run(input: input)
-      await Task.sleep(1)
+      try? await Task.sleep(nanoseconds: 1)
     }
   }
 

@@ -1,6 +1,6 @@
 import Extensions
 
-struct Space {
+private struct PartOneSpace {
   enum Kind: Equatable {
     case passage
     case exit
@@ -14,7 +14,7 @@ struct Space {
   var neighbors: [Position] = []
 }
 
-extension Space: CustomStringConvertible {
+extension PartOneSpace: CustomStringConvertible {
   var description: String {
     switch self.kind {
       case .exit: return "*"
@@ -25,7 +25,7 @@ extension Space: CustomStringConvertible {
   }
 }
 
-extension Space {
+extension PartOneSpace {
   init(_ source: Character) {
     switch source {
       case "1", "2": kind = .exit
@@ -36,13 +36,13 @@ extension Space {
   }
 }
 
-var grid = input.map { $0.map(Space.init) }
+private var grid = input.map { $0.map(PartOneSpace.init) }
 
-func passableNeighbors(of position: Position) -> [Position] {
+private func passableNeighbors(of position: Position) -> [Position] {
   grid.adjacentPositions(of: position).filter { grid[$0].kind.isPassable }
 }
 
-func setUpPortals() -> [Position: Position] {
+private func setUpPortals() -> [Position: Position] {
   let portalsByChar: [Character: [Position]] = grid.allPositions.reduce(into: [:]) { result, pos in
     if case .portal(let char) = grid[pos].kind {
       result[char, default: []].append(pos)
@@ -56,7 +56,7 @@ func setUpPortals() -> [Position: Position] {
   return destinationForPortalPos
 }
 
-public func findStepCount(from start: Position, to end: Position, havingVisited visited: Set<Position>, withCount count: Int, shortest: Int) -> Int {
+private func findStepCount(from start: Position, to end: Position, havingVisited visited: Set<Position>, withCount count: Int, shortest: Int) -> Int {
   guard start != end else { return count }
 
   let newVisted = visited.inserting(start)
@@ -81,9 +81,5 @@ public func partOne() {
     }
   }
 
-  print(findStepCount(from: exits[0], to: exits[1], havingVisited: [], withCount: 0, shortest: Int.max) - 2)
-}
-
-public func partTwo() {
-
+  print(findStepCount(from: exits[0], to: exits[1], havingVisited: [], withCount: 0, shortest: Int.max) - 2) // 476
 }
